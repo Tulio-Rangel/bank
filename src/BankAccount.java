@@ -4,7 +4,7 @@ import java.util.List;
 public class BankAccount {
     private final String accountNumber;
     private double balance;
-    private final List<Transaction> transactionHistory;
+    private final List<Command> transactionHistory;
 
     public BankAccount(String accountNumber, double initialBalance) {
         this.accountNumber = accountNumber;
@@ -12,8 +12,18 @@ public class BankAccount {
         this.transactionHistory = new ArrayList<>();
     }
 
-    public void doTransaction(Transaction transaction) {
-        transaction.excecuteTransaction(this);
+    public void doTransaction(Command command) {
+        command.execute();
+        transactionHistory.add(command);
+    }
+
+    public void undoLastTransaction() {
+        if (!transactionHistory.isEmpty()) {
+            Command lastCommand = transactionHistory.remove(transactionHistory.size() - 1);
+            lastCommand.undo();
+        } else {
+            System.out.println("No hay transacciones para deshacer.");
+        }
     }
 
     public double getBalance() {
@@ -32,28 +42,10 @@ public class BankAccount {
         balance -= amount;
     }
 
-    public void addToHistory(Transaction transaction) {
-        transactionHistory.add(transaction);
-    }
-
     public void showHistory() {
         System.out.println("Historial de transacciones para la cuenta " + accountNumber + ":");
-        for (Transaction t : transactionHistory) {
-            System.out.println(t.getDescription() + " por $" + t.getAmount());
+        for (Command command : transactionHistory) {
+            System.out.println(command.getDescription());
         }
-    }
-
-    public static void main(String[] args) {
-        BankAccount cuenta1 = new BankAccount("123456789", 1000.0);
-        BankAccount cuenta2 = new BankAccount("987654321", 100.0);
-
-        cuenta1.doTransaction(new Deposit(500.0));
-        cuenta1.doTransaction(new Withdrawal(200.0));
-        cuenta1.doTransaction(new Withdrawal(1500.0));
-        cuenta1.doTransaction(new Transfer(300.0, cuenta2));
-        cuenta1.doTransaction(new Transfer(2000.0, cuenta2));
-
-        cuenta1.showHistory();
-        cuenta2.showHistory();
     }
 }
